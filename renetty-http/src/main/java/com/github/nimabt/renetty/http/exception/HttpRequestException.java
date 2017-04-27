@@ -57,4 +57,13 @@ public class HttpRequestException extends Exception {
     }
 
 
+    @Override
+    public String toString() {
+        return "HttpRequestException{" +
+                "httpResponseStatus=" + httpResponseStatus +
+                ", body='" + body + '\'' +
+                ", data='" + ((data!=null) ? "binary#" + data.length : null) + '\'' +
+                '}';
+    }
+
 }

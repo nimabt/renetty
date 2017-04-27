@@ -54,7 +54,7 @@ public class HttpRequestManager {
                 if (httpRequest != null) {
                     final String key = getRequestKey(httpRequest.method().toString(), httpRequest.path());
                     if(requestMap.containsKey(key)){
-                        logger.error("duplicate entry for: " + key + "; gonna override the previous mapping info. ... ");
+                        logger.error("duplicate entry for: {}; gonna override the previous mapping info. ... ",key);
                     }
                     final RequestInfo requestInfo = new RequestInfo(method, httpRequest.method(), httpRequest.path(), httpRequest.requestType(), httpRequest.responseType(), httpRequest.responseContentType());
                     requestMap.put(key, requestInfo);
@@ -63,7 +63,7 @@ public class HttpRequestManager {
 
         }
 
-        logger.info("done loading #" + requestMap.size() + " HttpRequest items ...");
+        logger.info("done loading #{} HttpRequest items ...",requestMap.size());
 
 
     }
@@ -72,7 +72,7 @@ public class HttpRequestManager {
 
 
 
-    AbstractHttpResponse process(final FullHttpRequest req, final ChannelHandlerContext ctx) {
+    AbstractHttpResponse process(final String reqId, final FullHttpRequest req, final ChannelHandlerContext ctx) {
 
         final HttpMethod method = req.method();
         final String uri = req.uri();
@@ -127,8 +127,11 @@ public class HttpRequestManager {
                     } else if(annotation instanceof RequestHeader){
                         final RequestHeader requestHeader = (RequestHeader) annotation;
                         paramVal[i] = req.headers().get(requestHeader.key());
+                    } else if(annotation instanceof RequestId){
+                        paramVal[i] = reqId;
+                    } else if(annotation instanceof RequestPath){
+                        paramVal[i] = path;
                     }
-
                 }
 
             }
@@ -149,22 +152,22 @@ public class HttpRequestManager {
                 final Throwable throwable = e.getCause();
                 if (throwable instanceof HttpRequestException) {
                     final HttpRequestException httpRequestException = (HttpRequestException) throwable;
-                    logger.info("got HttpRequestException while invoking: " + requestInfo + " ; gonna return: " + e);
+                    logger.info("{{}} got HttpRequestException while invoking: {}; gonna return: {}",reqId,requestInfo,httpRequestException);
                     if (requestInfo.isBinResp()){
                         return new BinaryHttpResponse(httpRequestException.getHttpResponseStatus(), getContentType(requestInfo), httpRequestException.getData());
                     } else {
                         return new TextHttpResponse(httpRequestException.getHttpResponseStatus(), getContentType(requestInfo), httpRequestException.getBody());
                     }
                 } else{
-                    logger.error("InvocationTargetException occurred while invoking: " + requestInfo + " ; reason: " + e.getMessage());
+                    logger.error("{{}} InvocationTargetException occurred while invoking: {}; reason: {}",reqId,requestInfo,e.getMessage());
                 }
             } catch (Throwable e){
-                logger.error("UnknownException occurred while invoking: " + requestInfo + " ; reason: " + e.getMessage());
+                logger.error("{{}} UnknownException occurred while invoking:{} ; reason: {}",reqId,requestInfo,e.getMessage());
             }
 
 
         } catch (Throwable t) {
-            System.out.println("exception occurred; reason: " + t.getMessage());
+            logger.error("{{}} exception occurred; reason: {}",reqId,t.getMessage());
         }
 
         if(requestInfo.isBinResp()){

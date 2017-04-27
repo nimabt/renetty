@@ -13,6 +13,8 @@ import io.netty.handler.codec.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.UUID;
+
 import static io.netty.handler.codec.http.HttpHeaders.Names.*;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 import static io.netty.handler.codec.rtsp.RtspResponseStatuses.CONTINUE;
@@ -43,9 +45,11 @@ public class NettyHttpChannelInboundHandler extends ChannelInboundHandlerAdapter
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
+        final String reqId = UUID.randomUUID().toString();
+
         if(!(msg instanceof FullHttpRequest)){
             // todo: requires test, +think of returning custom http resp
-            logger.warn("received request is not an instance of FullHttpRequest, gonna drop the message: " + msg);
+            logger.warn("{{}} received request is not an instance of FullHttpRequest, gonna drop the message: {}",reqId,msg);
             ctx.close();
             return;
         }
@@ -53,9 +57,9 @@ public class NettyHttpChannelInboundHandler extends ChannelInboundHandlerAdapter
         final FullHttpRequest req = (FullHttpRequest) msg;
 
         if(logger.isDebugEnabled())
-            logger.info("got FullHttpRequest: " + req);
+            logger.info("{{}} got FullHttpRequest: {}",reqId,req);
 
-        logger.info("got http request (" + req.method() + ":" + req.uri() + ")");
+        logger.info("{{}} got http request [{}:{}]",reqId,req.method(),req.uri());
 
         if (HttpUtil.is100ContinueExpected(req)) {
             ctx.write(new DefaultFullHttpResponse(HTTP_1_1, CONTINUE));
@@ -66,9 +70,9 @@ public class NettyHttpChannelInboundHandler extends ChannelInboundHandlerAdapter
         final byte[] resp;
         final String contentType;
 
-        final AbstractHttpResponse response = httpRequestManager.process(req, ctx);
+        final AbstractHttpResponse response = httpRequestManager.process(reqId, req, ctx);
         if (response == null) {
-            logger.error("received null resp. from the corresponding handler for (" + req.method() + ":" + req.uri() + ")");
+            logger.error("{{}} received null resp. from the corresponding handler for [{}:{}]",reqId,req.method(),req.uri());
             httpResponseStatus = HttpResponseStatus.INTERNAL_SERVER_ERROR;
             resp = ConstValues.EMPTY_RESPONSE;
             contentType = ConstValues.DEFAULT_CONTENT_TYPE;
@@ -77,11 +81,9 @@ public class NettyHttpChannelInboundHandler extends ChannelInboundHandlerAdapter
             contentType = response.getContentType();
             if (response.getType().equals(DataType.BINARY)) {
                 resp = ((BinaryHttpResponse) response).getData();
-                //contentType = "application/octet-stream";
             } else {
                 final String body = ((TextHttpResponse) response).getBody();
                 resp = ((body != null) ? body.getBytes() : ConstValues.EMPTY_RESPONSE);
-                //contentType = "text/plain";
             }
         }
 

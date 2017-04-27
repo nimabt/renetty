@@ -26,7 +26,7 @@ public class NettyHttpServer {
     private final Logger logger = LoggerFactory.getLogger(NettyHttpServer.class);
 
     public NettyHttpServer(final int port, final HttpRequestHandler requestHandler , final int workerCount, final int maxContentLength) {
-        logger.info("init: NettyHttpServer (@port: " + port + ") ... ");
+        logger.info("init: NettyHttpServer (@port: {}) ... ",port);
         this.port = port;
         this.requestHandler = requestHandler;
         this.workerCount = workerCount>1 ?  workerCount : 1;
@@ -38,7 +38,7 @@ public class NettyHttpServer {
     public void start() throws InterruptedException {
 
         if(logger.isDebugEnabled())
-            logger.debug("gonna start netty http server with the following params: (port: " + port + ", workerCount: " + workerCount + " , maxContentLength: " + maxContentLength);
+            logger.debug("gonna start netty http server with the following params: (port: {}, workerCount: {}, maxContentLength: {})",port,workerCount,maxContentLength);
 
         final HttpRequestManager httpRequestManager = new HttpRequestManager(requestHandler);
 
