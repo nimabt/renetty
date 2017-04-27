@@ -4,7 +4,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.github.nimabt</groupId>
+        <groupId>com.github.nimabt.renetty</groupId>
         <artifactId>renetty</artifactId>
         <version>0.1.0</version>
     </parent>
@@ -29,7 +29,7 @@
 
 
         <dependency>
-            <groupId>com.github.nimabt</groupId>
+            <groupId>com.github.nimabt.renetty</groupId>
             <artifactId>renetty-http</artifactId>
             <version>${project.version}</version>
         </dependency>

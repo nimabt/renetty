@@ -45,22 +45,17 @@ public class NettyHttpServer {
         final EventLoopGroup parentGroup = new NioEventLoopGroup(workerCount);
         final EventLoopGroup childGroup = new NioEventLoopGroup();
 
-        try {
-            final ServerBootstrap bootstrap = new ServerBootstrap();
-            bootstrap.option(ChannelOption.SO_BACKLOG, 1024);
-            bootstrap.group(parentGroup, childGroup);
-            bootstrap.handler(new LoggingHandler(LogLevel.DEBUG));
-            bootstrap.channel(NioServerSocketChannel.class);
-            bootstrap.childHandler(new NettyHttpChannelInitializer(httpRequestManager, maxContentLength));
+        final ServerBootstrap bootstrap = new ServerBootstrap();
+        bootstrap.option(ChannelOption.SO_BACKLOG, 1024);
+        bootstrap.group(parentGroup, childGroup);
+        bootstrap.handler(new LoggingHandler(LogLevel.DEBUG));
+        bootstrap.channel(NioServerSocketChannel.class);
+        bootstrap.childHandler(new NettyHttpChannelInitializer(httpRequestManager, maxContentLength));
 
-            final Channel channel = bootstrap.bind(port).sync().channel();
-            logger.info("netty http server is up-n-running ... ");
-            channel.closeFuture().sync();
-
-        } finally {
-            parentGroup.shutdownGracefully();
-            childGroup.shutdownGracefully();
-        }
+        final Channel channel = bootstrap.bind(port).sync().channel();
+        logger.info("netty http server is up-n-running ... :)");
+        //channel.closeFuture().sync();
+        channel.closeFuture();
 
     }
 
