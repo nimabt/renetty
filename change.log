@@ -1,0 +1,5 @@
+* 0.1.0
+    - first operational version of the project which supports basic annotations to serve http rest calls (using Netty)
+
+
+

@@ -1,0 +1,29 @@
+# intelliJidea project files and directories
+*.iml
+*.ipr
+*.iws
+.idea/
+
+
+# build targets
+/target
+*/target
+
+# report directories
+/reports
+*/reports
+
+# cac-specific directory that no other operating system needs.
+.DS_Store
+
+# jvm crash logs
+hs_err_pid*.log
+
+# etc
+draft/
+.project
+.classpath
+.settings
+
+
+
