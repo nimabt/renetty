@@ -3,6 +3,8 @@ the goal of this project is to simplify the usage of Netty.
 currently, it provides a set of annotations to handle http rest calls easily.
  
  ## How to Build
+ 
+ ### Manual Build
  Requirements:
  - Java 1.7+
  - Apache Maven
@@ -13,12 +15,36 @@ currently, it provides a set of annotations to handle http rest calls easily.
 finally, add the following dependency to the project's pom.xml (in case of using maven)
 ```
 <dependency>
-    <groupId>com.github.nimabt</groupId>
+    <groupId>com.github.nimabt.renetty</groupId>
     <artifactId>renetty-http</artifactId>
     <version>0.1.0</version>
 </dependency>
 ```
+### Using JitPack
+you can also use [jitpack](https://jitpack.io) to prevent local build & automatically integrate the required dependency into your project
+```
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
 
+...
+    
+<dependencies>
+    ...
+    <dependency>
+        <groupId>com.github.nimabt.renetty</groupId>
+        <artifactId>renetty-http</artifactId>
+        <version>0.1.0</version>
+    </dependency>
+    ...
+</dependencies>
+
+    
+
+```
  
  ## Sample Usage
  
@@ -43,11 +69,9 @@ finally, add the following dependency to the project's pom.xml (in case of using
  @HttpRequest(method = RequestMethod.POST , path="/test/post/data" , responseType = DataType.TEXT)
  public String testPostData(final @RequestBody String body, final @IpAddress String ipAddress){
      return "post got value: " + body + " ,from: " + ipAddress;
- }
-    
-  ...
+ }   
+ ...
 
- }
  ```
  
 please check the package:example for more samples.
