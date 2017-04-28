@@ -1,5 +1,9 @@
 * 0.1.0
     - first operational version of the project which supports basic annotations to serve http rest calls (using Netty)
 
+* 0.1.1
+    - support for 2 new annotations: @RequestId & @RequestPath
+    - minor changes including some logging improvements
+
 
 
