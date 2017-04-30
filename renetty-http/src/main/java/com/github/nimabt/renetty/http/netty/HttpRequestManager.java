@@ -2,10 +2,7 @@ package com.github.nimabt.renetty.http.netty;
 
 import com.github.nimabt.renetty.http.annotation.*;
 import com.github.nimabt.renetty.http.exception.HttpRequestException;
-import com.github.nimabt.renetty.http.model.AbstractHttpResponse;
-import com.github.nimabt.renetty.http.model.BinaryHttpResponse;
-import com.github.nimabt.renetty.http.model.RequestInfo;
-import com.github.nimabt.renetty.http.model.TextHttpResponse;
+import com.github.nimabt.renetty.http.model.*;
 import com.github.nimabt.renetty.http.util.ConstValues;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -56,7 +53,8 @@ public class HttpRequestManager {
                     if(requestMap.containsKey(key)){
                         logger.error("duplicate entry for: {}; gonna override the previous mapping info. ... ",key);
                     }
-                    final RequestInfo requestInfo = new RequestInfo(method, httpRequest.method(), httpRequest.path(), httpRequest.requestType(), httpRequest.responseType(), httpRequest.responseContentType());
+                    //final RequestInfo requestInfo = new RequestInfo(method, httpRequest.method(), httpRequest.path(), httpRequest.requestType(), httpRequest.responseType(), httpRequest.responseContentType());
+                    final RequestInfo requestInfo = new RequestInfo(method, httpRequest.method(), httpRequest.path(), httpRequest.requestType(), httpRequest.responseContentType());
                     requestMap.put(key, requestInfo);
                 }
             }
@@ -82,7 +80,7 @@ public class HttpRequestManager {
 
         final String key = getRequestKey(method.name(), path);
         if (!requestMap.containsKey(key)) {
-            return new TextHttpResponse(HttpResponseStatus.NOT_FOUND, ConstValues.DEFAULT_CONTENT_TYPE);
+            return new TextHttpResponse(HttpResponseStatus.NOT_FOUND, null, ConstValues.DEFAULT_CONTENT_TYPE);
         }
 
         final RequestInfo requestInfo = requestMap.get(key);
@@ -142,22 +140,29 @@ public class HttpRequestManager {
 
                 final Object response = requestInfo.getInvokationMethod().invoke(httpRequestHandler, paramVal);
 
+                /*
                 if (requestInfo.isBinResp()){
                     return new BinaryHttpResponse(HttpResponseStatus.OK, getContentType(requestInfo), (byte[]) response);
                 } else {
                     return new TextHttpResponse(HttpResponseStatus.OK, getContentType(requestInfo), (String) response);
                 }
+                */
+                return getResponse(requestInfo,response,HttpResponseStatus.OK);
 
             } catch (InvocationTargetException e){
                 final Throwable throwable = e.getCause();
                 if (throwable instanceof HttpRequestException) {
                     final HttpRequestException httpRequestException = (HttpRequestException) throwable;
                     logger.info("{{}} got HttpRequestException while invoking: {}; gonna return: {}",reqId,requestInfo,httpRequestException);
+
+                    /*
                     if (requestInfo.isBinResp()){
                         return new BinaryHttpResponse(httpRequestException.getHttpResponseStatus(), getContentType(requestInfo), httpRequestException.getData());
                     } else {
                         return new TextHttpResponse(httpRequestException.getHttpResponseStatus(), getContentType(requestInfo), httpRequestException.getBody());
                     }
+                    */
+                    return getResponse(requestInfo,httpRequestException.getHttpResponse(),httpRequestException.getHttpResponse().getStatus());
                 } else{
                     logger.error("{{}} InvocationTargetException occurred while invoking: {}; reason: {}",reqId,requestInfo,e.getMessage());
                 }
@@ -170,11 +175,14 @@ public class HttpRequestManager {
             logger.error("{{}} exception occurred; reason: {}",reqId,t.getMessage());
         }
 
+        /*
         if(requestInfo.isBinResp()){
             return new BinaryHttpResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR,getContentType(requestInfo));
         } else{
             return new TextHttpResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR,getContentType(requestInfo));
         }
+        */
+        return getResponse(requestInfo,null,HttpResponseStatus.INTERNAL_SERVER_ERROR);
 
 
 
@@ -197,15 +205,7 @@ public class HttpRequestManager {
 
 
 
-    private String getContentType(final RequestInfo requestInfo){
 
-        final String customResponseContentType = requestInfo.getResponseContentType();
-        if(!StringUtils.isBlank(customResponseContentType)){
-            return customResponseContentType;
-        }
-        return requestInfo.isBinResp() ? ConstValues.DEFAULT_BIN_CONTENT_TYPE : ConstValues.DEFAULT_CONTENT_TYPE;
-
-    }
 
 
     private String getRequestKey(final String method, final String uri) {
@@ -214,6 +214,35 @@ public class HttpRequestManager {
 
 
 
+
+    private String getContentType(final RequestInfo requestInfo, final boolean binStat){
+
+        final String customResponseContentType = requestInfo.getResponseContentType();
+        if(!StringUtils.isBlank(customResponseContentType)){
+            return customResponseContentType;
+        }
+        return binStat ? ConstValues.DEFAULT_BIN_CONTENT_TYPE : ConstValues.DEFAULT_CONTENT_TYPE;
+
+    }
+
+    private AbstractHttpResponse getResponse(final RequestInfo requestInfo, final Object response, final HttpResponseStatus httpResponseStatus){
+
+        if(response==null){
+            logger.warn("response is null for: {} ; cannot decide the type of the response!",requestInfo); // todo : log reqId too ... ?
+            return new TextHttpResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR,null,requestInfo.getResponseContentType());
+        } else{
+            if( (response instanceof AbstractHttpResponse) ){
+                return (AbstractHttpResponse) response;
+            } else{
+                if(response instanceof byte[]){
+                    return new BinaryHttpResponse(httpResponseStatus,(byte[]) response, getContentType(requestInfo,true));
+                } else{
+                    return new TextHttpResponse(httpResponseStatus, (String) response, getContentType(requestInfo,false));
+                }
+            }
+        }
+
+    }
 
 
 }

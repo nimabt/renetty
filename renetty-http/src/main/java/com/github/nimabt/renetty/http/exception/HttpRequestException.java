@@ -1,5 +1,9 @@
 package com.github.nimabt.renetty.http.exception;
 
+import com.github.nimabt.renetty.http.model.AbstractHttpResponse;
+import com.github.nimabt.renetty.http.model.BinaryHttpResponse;
+import com.github.nimabt.renetty.http.model.TextHttpResponse;
+import com.github.nimabt.renetty.http.util.ConstValues;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
 /**
@@ -8,61 +12,55 @@ import io.netty.handler.codec.http.HttpResponseStatus;
  */
 public class HttpRequestException extends Exception {
 
-    private final HttpResponseStatus httpResponseStatus;
 
-    private final String body;
+    private final AbstractHttpResponse httpResponse;
 
-    private final byte[] data;
+    public HttpRequestException(final AbstractHttpResponse httpResponse, final String message){
+        super(message);
+        this.httpResponse = httpResponse;
+    }
 
     public HttpRequestException(final HttpResponseStatus httpResponseStatus){
-        this(httpResponseStatus,null,null,null);
+        this(new TextHttpResponse(httpResponseStatus, null,ConstValues.DEFAULT_CONTENT_TYPE),null);
     }
+
 
     public HttpRequestException(final HttpResponseStatus httpResponseStatus, final String body){
-        this(httpResponseStatus,body,null,null);
+        this(new TextHttpResponse(httpResponseStatus,body,ConstValues.DEFAULT_CONTENT_TYPE),null);
     }
 
-    public HttpRequestException(final HttpResponseStatus httpResponseStatus, final String body, final String message){
-        this(httpResponseStatus,body,null,message);
+    public HttpRequestException(final HttpResponseStatus httpResponseStatus, final String body, final String contentType){
+        this(new TextHttpResponse(httpResponseStatus,body,contentType),null);
     }
+
+    public HttpRequestException(final HttpResponseStatus httpResponseStatus, final String body, final String contentType, final String message){
+        this(new TextHttpResponse(httpResponseStatus,body,contentType),message);
+    }
+
 
     public HttpRequestException(final HttpResponseStatus httpResponseStatus, final byte[] data){
-        this(httpResponseStatus,null,data,null);
+        this(new BinaryHttpResponse(httpResponseStatus,data,ConstValues.DEFAULT_BIN_CONTENT_TYPE),null);
     }
 
-    public HttpRequestException(final HttpResponseStatus httpResponseStatus, final byte[] data, final String message){
-        this(httpResponseStatus,null,data,message);
-    }
-
-
-    public HttpRequestException(final HttpResponseStatus httpResponseStatus, final String body, final byte[] data, final String message){
-        super(message);
-        this.httpResponseStatus = httpResponseStatus;
-        this.body = body;
-        this.data = data;
+    public HttpRequestException(final HttpResponseStatus httpResponseStatus, final byte[] data, final String contentType){
+        this(new BinaryHttpResponse(httpResponseStatus,data,contentType),null);
     }
 
 
-    public HttpResponseStatus getHttpResponseStatus() {
-
-        return httpResponseStatus;
+    public HttpRequestException(final HttpResponseStatus httpResponseStatus, final byte[] data, final String contentType, final String message){
+        this(new BinaryHttpResponse(httpResponseStatus,data,contentType),message);
     }
 
-    public String getBody() {
-        return body;
-    }
 
-    public byte[] getData() {
-        return data;
+    public AbstractHttpResponse getHttpResponse() {
+        return httpResponse;
     }
 
 
     @Override
     public String toString() {
         return "HttpRequestException{" +
-                "httpResponseStatus=" + httpResponseStatus +
-                ", body='" + body + '\'' +
-                ", data='" + ((data!=null) ? "binary#" + data.length : null) + '\'' +
+                "httpResponse=" + httpResponse +
                 '}';
     }
 

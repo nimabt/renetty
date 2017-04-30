@@ -1,5 +1,6 @@
 package com.github.nimabt.renetty.http.model;
 
+import com.github.nimabt.renetty.http.util.ConstValues;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
 /**
@@ -10,13 +11,12 @@ public class TextHttpResponse extends AbstractHttpResponse {
 
     private final String body;
 
-
-
-    public TextHttpResponse(final HttpResponseStatus status, final String contentType){
-        this(status,contentType,null);
+    public TextHttpResponse(final String body){
+        this(HttpResponseStatus.OK, body, ConstValues.DEFAULT_CONTENT_TYPE);
     }
 
-    public TextHttpResponse(final HttpResponseStatus status, final String contentType, final String body){
+
+    public TextHttpResponse(final HttpResponseStatus status, final String body,  final String contentType){
         super(status,contentType);
         this.body = body;
     }

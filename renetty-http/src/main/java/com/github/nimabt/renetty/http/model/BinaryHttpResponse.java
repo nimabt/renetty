@@ -11,12 +11,12 @@ public class BinaryHttpResponse extends AbstractHttpResponse {
 
     private final byte[] data;
 
-
-    public BinaryHttpResponse(final HttpResponseStatus status, final String contentType){
-        this(status,contentType, ConstValues.EMPTY_RESPONSE);
+    public BinaryHttpResponse(final byte[] data){
+        this(HttpResponseStatus.OK,data,ConstValues.DEFAULT_BIN_CONTENT_TYPE);
     }
 
-    public BinaryHttpResponse(final HttpResponseStatus status, final String contentType, final byte[] data){
+
+    public BinaryHttpResponse(final HttpResponseStatus status, final byte[] data, final String contentType){
         super(status,contentType);
         this.data = data;
     }

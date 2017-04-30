@@ -23,7 +23,7 @@ public @interface HttpRequest {
 
     public DataType requestType() default DataType.TEXT;
 
-    public DataType responseType() default DataType.TEXT;
+    //public DataType responseType() default DataType.TEXT;
 
     public String responseContentType() default "";
 
