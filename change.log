@@ -9,5 +9,8 @@
     - removing HttpRequest's responseType, detecting the response by the target method's return value
     - support for direct usages of {TextHttpResponse,BinaryHttpResponse} within HttpRequest's response
 
+* 0.1.3
+    - adding support for having multiple HttpRequestHandler implementations within one NettyHttpServer
+
 
 

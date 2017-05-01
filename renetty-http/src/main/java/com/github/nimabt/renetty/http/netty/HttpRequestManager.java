@@ -29,7 +29,7 @@ import java.util.Map;
  */
 public class HttpRequestManager {
 
-    private final HttpRequestHandler httpRequestHandler;
+    private final List<HttpRequestHandler> httpRequestHandlers;
 
 
     private final Logger logger = LoggerFactory.getLogger(HttpRequestManager.class);
@@ -37,31 +37,37 @@ public class HttpRequestManager {
 
     private final Map<String, RequestInfo> requestMap = new HashMap<String, RequestInfo>();
 
-    public HttpRequestManager(final HttpRequestHandler httpRequestHandler){
+    public HttpRequestManager(final List<HttpRequestHandler> httpRequestHandlers){
 
         logger.info("init: HttpRequestManager ... ");
-        this.httpRequestHandler = httpRequestHandler;
+        this.httpRequestHandlers = httpRequestHandlers;
 
-        final Class c = httpRequestHandler.getClass();
-        for (Method method : c.getDeclaredMethods()) {
+        for(int i=0;i<httpRequestHandlers.size();i++){
+            final HttpRequestHandler httpRequestHandler = httpRequestHandlers.get(i);
+            final Class c = httpRequestHandler.getClass();
+            for (Method method : c.getDeclaredMethods()) {
 
-            if (method.isAnnotationPresent(HttpRequest.class)) {
-                final Annotation annotation = method.getAnnotation(HttpRequest.class);
-                HttpRequest httpRequest = (HttpRequest) annotation;
-                if (httpRequest != null) {
-                    final String key = getRequestKey(httpRequest.method().toString(), httpRequest.path());
-                    if(requestMap.containsKey(key)){
-                        logger.error("duplicate entry for: {}; gonna override the previous mapping info. ... ",key);
+                if (method.isAnnotationPresent(HttpRequest.class)) {
+                    final Annotation annotation = method.getAnnotation(HttpRequest.class);
+                    HttpRequest httpRequest = (HttpRequest) annotation;
+                    if (httpRequest != null) {
+                        final String key = getRequestKey(httpRequest.method().toString(), httpRequest.path());
+                        if(requestMap.containsKey(key)){
+                            logger.error("duplicate entry for: {}; gonna override the previous mapping info. ... ",key);
+                        }
+                        //final RequestInfo requestInfo = new RequestInfo(method, httpRequest.method(), httpRequest.path(), httpRequest.requestType(), httpRequest.responseType(), httpRequest.responseContentType());
+                        final RequestInfo requestInfo = new RequestInfo(i,method, httpRequest.method(), httpRequest.path(), httpRequest.requestType(), httpRequest.responseContentType());
+                        requestMap.put(key, requestInfo);
                     }
-                    //final RequestInfo requestInfo = new RequestInfo(method, httpRequest.method(), httpRequest.path(), httpRequest.requestType(), httpRequest.responseType(), httpRequest.responseContentType());
-                    final RequestInfo requestInfo = new RequestInfo(method, httpRequest.method(), httpRequest.path(), httpRequest.requestType(), httpRequest.responseContentType());
-                    requestMap.put(key, requestInfo);
                 }
+
             }
 
         }
 
-        logger.info("done loading #{} HttpRequest items ...",requestMap.size());
+
+
+        logger.info("done loading #{} HttpRequest items of #{} HttpRequestHandler(s) ...",requestMap.size(),httpRequestHandlers.size());
 
 
     }
@@ -138,7 +144,8 @@ public class HttpRequestManager {
 
             try{
 
-                final Object response = requestInfo.getInvokationMethod().invoke(httpRequestHandler, paramVal);
+                //final Object response = requestInfo.getInvokationMethod().invoke(httpRequestHandler, paramVal);
+                final Object response = requestInfo.getInvokationMethod().invoke(httpRequestHandlers.get(requestInfo.getRequestHandlerIndex()), paramVal);
 
                 /*
                 if (requestInfo.isBinResp()){

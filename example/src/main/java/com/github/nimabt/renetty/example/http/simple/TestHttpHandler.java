@@ -1,4 +1,4 @@
-package com.github.nimabt.renetty.example.http;
+package com.github.nimabt.renetty.example.http.simple;
 
 import com.github.nimabt.renetty.http.annotation.*;
 import com.github.nimabt.renetty.http.exception.HttpRequestException;

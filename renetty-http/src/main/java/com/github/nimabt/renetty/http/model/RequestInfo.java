@@ -15,9 +15,11 @@ public class RequestInfo implements Serializable {
     //private final DataType responseType;
     private final String responseContentType;
 
+    private final int requestHandlerIndex;
     private final Method invokationMethod;
 
     public RequestInfo(
+            final int requestHandlerIndex,
             final Method invokationMethod,
             final RequestMethod requestMethod,
             final String uri,
@@ -25,12 +27,18 @@ public class RequestInfo implements Serializable {
             //final DataType responseType,
             final String responseContentType
             ){
+        this.requestHandlerIndex = requestHandlerIndex;
         this.invokationMethod = invokationMethod;
         this.requestMethod = requestMethod;
         this.uri = uri;
         this.requestType = requestType;
         //this.responseType = responseType;
         this.responseContentType = responseContentType;
+    }
+
+
+    public int getRequestHandlerIndex() {
+        return requestHandlerIndex;
     }
 
     public RequestMethod getRequestMethod() {
@@ -69,7 +77,8 @@ public class RequestInfo implements Serializable {
     @Override
     public String toString() {
         return "RequestInfo{" +
-                "requestMethod=" + requestMethod +
+                "requestHandlerIndex=" + requestHandlerIndex +
+                ", requestMethod=" + requestMethod +
                 ", uri='" + uri + '\'' +
                 ", requestType=" + requestType +
                 //", responseType=" + responseType +
