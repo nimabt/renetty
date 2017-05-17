@@ -123,7 +123,7 @@ public class HttpRequestManager {
             final String preInterceptKey = getInterceptorKey(MethodType.PRE_INTERCEPT,method.toString(),requestHandlerIndex);
             if(interceptMap.containsKey(preInterceptKey)){
                 final InterceptorInfo preInterceptorInfo = interceptMap.get(preInterceptKey);
-                final InvokeResponse preInvokeResponse = invoke(reqId, startTime, requestInfo,preInterceptorInfo.getInvokationMethod(), req,ctx, queryStringDecoder,false);
+                final InvokeResponse preInvokeResponse = invoke(reqId, startTime, requestInfo,preInterceptorInfo.getInvokationMethod(), req,ctx, queryStringDecoder,false,null);
                 if(!preInvokeResponse.isOk() && preInterceptorInfo.isBreakOnException()){
                     return preInvokeResponse.getHttpResponse();
                 }
@@ -132,7 +132,7 @@ public class HttpRequestManager {
 
 
             // ------------------------------------
-            final InvokeResponse invokeResponse = invoke(reqId, startTime, requestInfo,requestInfo.getInvokationMethod(), req,ctx, queryStringDecoder,true);
+            final InvokeResponse invokeResponse = invoke(reqId, startTime, requestInfo,requestInfo.getInvokationMethod(), req,ctx, queryStringDecoder,true,null);
             if(!invokeResponse.isOk() && requestInfo.isBreakOnException()){
                 return invokeResponse.getHttpResponse();
             }
@@ -142,7 +142,7 @@ public class HttpRequestManager {
             final String postInterceptKey = getInterceptorKey(MethodType.POST_INTERCEPT,method.toString(),requestHandlerIndex);
             if(interceptMap.containsKey(postInterceptKey)){
                 final InterceptorInfo postInterceptorInfo = interceptMap.get(postInterceptKey);
-                final InvokeResponse postInvokeResponse = invoke(reqId, startTime, requestInfo,postInterceptorInfo.getInvokationMethod(), req,ctx, queryStringDecoder,false);
+                final InvokeResponse postInvokeResponse = invoke(reqId, startTime, requestInfo,postInterceptorInfo.getInvokationMethod(), req,ctx, queryStringDecoder,false,invokeResponse.getHttpResponse());
                 if(!postInvokeResponse.isOk() && postInterceptorInfo.isBreakOnException()){
                     return postInvokeResponse.getHttpResponse();
                 }
@@ -164,7 +164,7 @@ public class HttpRequestManager {
 
 
 
-    private InvokeResponse invoke(final String reqId, final long startTime, final RequestInfo requestInfo, final Method method, final FullHttpRequest req, final ChannelHandlerContext ctx, final QueryStringDecoder queryStringDecoder, final boolean mainMethod){
+    private InvokeResponse invoke(final String reqId, final long startTime, final RequestInfo requestInfo, final Method method, final FullHttpRequest req, final ChannelHandlerContext ctx, final QueryStringDecoder queryStringDecoder, final boolean mainMethod, final AbstractHttpResponse mainResponse){
 
         final int requestHandlerIndex = requestInfo.getRequestHandlerIndex();
 
@@ -172,7 +172,7 @@ public class HttpRequestManager {
 
         try{
 
-            final Object[] params = getInvokeParams(reqId,startTime,method,req,ctx,queryStringDecoder);
+            final Object[] params = getInvokeParams(reqId,startTime,method,req,ctx,queryStringDecoder,mainResponse);
             final Object response = method.invoke(httpRequestHandlers.get(requestHandlerIndex), params);
             if(mainMethod){
                 final AbstractHttpResponse httpResponse =  getResponse(requestInfo,response,HttpResponseStatus.OK);
@@ -240,7 +240,7 @@ public class HttpRequestManager {
 
 
     // todo : create a private method called _invoke ...
-    private Object[] getInvokeParams(final String reqId, final long startTime, final Method method, final FullHttpRequest req, final ChannelHandlerContext ctx, final QueryStringDecoder queryStringDecoder) throws Exception {
+    private Object[] getInvokeParams(final String reqId, final long startTime, final Method method, final FullHttpRequest req, final ChannelHandlerContext ctx, final QueryStringDecoder queryStringDecoder, final AbstractHttpResponse mainResponse) throws Exception {
 
         final String path = queryStringDecoder.path();
 
@@ -290,6 +290,17 @@ public class HttpRequestManager {
                     paramVal[i] = path;
                 } else if(annotation instanceof RequestTime){
                     paramVal[i] = startTime;
+                }
+
+                // todo : better code-quality required ...
+                if(mainResponse!=null){
+                    if(annotation instanceof ResponseStatus){
+                        paramVal[i] = mainResponse.getStatus().code();
+                    } else if(annotation instanceof ResponseBody && mainResponse.getType().equals(DataType.TEXT)){
+                        paramVal[i] = ((TextHttpResponse) mainResponse).getBody();
+                    } else if(annotation instanceof ResponseData && mainResponse.getType().equals(DataType.BINARY)){
+                        paramVal[i] = ((BinaryHttpResponse) mainResponse).getData();
+                    }
                 }
             }
 

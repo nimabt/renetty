@@ -16,6 +16,7 @@
     - adding @PreIntercept/@PostIntercept method annotations
     - support for @RequestTime parameter annotation
     - adding breakOnException for @HttpRequest,@PreIntercept,@PostIntercept
+    - adding support for @ResponseStatus, @ResponseBody & @ResponseData within @PostIntercept
 
 
 
