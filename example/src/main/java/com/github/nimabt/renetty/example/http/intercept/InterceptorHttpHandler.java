@@ -31,7 +31,7 @@ public class InterceptorHttpHandler implements HttpRequestHandler {
     }
 
 
-    @HttpRequest(method = RequestMethod.GET, path = "/test2" , breakOnException = true)
+    @HttpRequest(method = RequestMethod.GET, path = "/test2" , breakOnException = false)
     public String test2(final @RequestId String requestId) throws HttpRequestException{
         System.out.println("reqId: " + requestId + " processing request with exception , post-interceptor will not be executed because of breakOnException");
         throw new HttpRequestException(HttpResponseStatus.INTERNAL_SERVER_ERROR,"exception occurred :(");

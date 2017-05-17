@@ -8,7 +8,7 @@ import java.io.Serializable;
  */
 public class InvokeResponse implements Serializable {
 
-    public final boolean ok;
+    private final boolean ok;
     private final AbstractHttpResponse httpResponse;
 
     public InvokeResponse(final boolean ok, final AbstractHttpResponse httpResponse){

@@ -1,9 +1,9 @@
 package com.github.nimabt.renetty.http.netty;
 
 import com.github.nimabt.renetty.http.annotation.*;
-import com.github.nimabt.renetty.http.exception.HttpRequestException;
 import com.github.nimabt.renetty.http.model.*;
 import com.github.nimabt.renetty.http.util.ConstValues;
+import com.github.nimabt.renetty.http.util.HttpUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -15,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
@@ -35,6 +34,9 @@ public class HttpRequestManager {
 
     private final Map<String, RequestInfo> requestMap = new HashMap<String, RequestInfo>();
     private final Map<String,InterceptorInfo> interceptMap = new HashMap<String,InterceptorInfo>();
+
+
+    private final MethodInvokeImpl methodInvokeImpl = new MethodInvokeImpl();
 
 
     public HttpRequestManager(final List<HttpRequestHandler> httpRequestHandlers){
@@ -109,6 +111,7 @@ public class HttpRequestManager {
         final String path = queryStringDecoder.path();
 
 
+
         final String key = getRequestKey(method.name(), path);
         if (!requestMap.containsKey(key)) {
             return new TextHttpResponse(HttpResponseStatus.NOT_FOUND, null, ConstValues.DEFAULT_CONTENT_TYPE);
@@ -116,6 +119,9 @@ public class HttpRequestManager {
 
         final RequestInfo requestInfo = requestMap.get(key);
         final int requestHandlerIndex = requestInfo.getRequestHandlerIndex();
+        final HttpRequestHandler httpRequestHandler = httpRequestHandlers.get(requestHandlerIndex);
+
+
 
 
         try{
@@ -123,7 +129,7 @@ public class HttpRequestManager {
             final String preInterceptKey = getInterceptorKey(MethodType.PRE_INTERCEPT,method.toString(),requestHandlerIndex);
             if(interceptMap.containsKey(preInterceptKey)){
                 final InterceptorInfo preInterceptorInfo = interceptMap.get(preInterceptKey);
-                final InvokeResponse preInvokeResponse = invoke(reqId, startTime, requestInfo,preInterceptorInfo.getInvokationMethod(), req,ctx, queryStringDecoder,false,null);
+                final InvokeResponse preInvokeResponse = methodInvokeImpl.invoke(httpRequestHandler,preInterceptorInfo.getInvokationMethod(), req,ctx,queryStringDecoder,requestInfo,reqId, startTime,  MethodType.PRE_INTERCEPT,null);
                 if(!preInvokeResponse.isOk() && preInterceptorInfo.isBreakOnException()){
                     return preInvokeResponse.getHttpResponse();
                 }
@@ -131,18 +137,16 @@ public class HttpRequestManager {
 
 
 
-            // ------------------------------------
-            final InvokeResponse invokeResponse = invoke(reqId, startTime, requestInfo,requestInfo.getInvokationMethod(), req,ctx, queryStringDecoder,true,null);
+            final InvokeResponse invokeResponse = methodInvokeImpl.invoke(httpRequestHandler,requestInfo.getInvokationMethod(),req,ctx, queryStringDecoder,requestInfo, reqId, startTime, MethodType.MAIN_METHOD,null);
             if(!invokeResponse.isOk() && requestInfo.isBreakOnException()){
                 return invokeResponse.getHttpResponse();
             }
-            // ------------------------------------
 
 
             final String postInterceptKey = getInterceptorKey(MethodType.POST_INTERCEPT,method.toString(),requestHandlerIndex);
             if(interceptMap.containsKey(postInterceptKey)){
                 final InterceptorInfo postInterceptorInfo = interceptMap.get(postInterceptKey);
-                final InvokeResponse postInvokeResponse = invoke(reqId, startTime, requestInfo,postInterceptorInfo.getInvokationMethod(), req,ctx, queryStringDecoder,false,invokeResponse.getHttpResponse());
+                final InvokeResponse postInvokeResponse = methodInvokeImpl.invoke(httpRequestHandler,postInterceptorInfo.getInvokationMethod(),req,ctx, queryStringDecoder, requestInfo, reqId, startTime, MethodType.POST_INTERCEPT, invokeResponse.getHttpResponse());
                 if(!postInvokeResponse.isOk() && postInterceptorInfo.isBreakOnException()){
                     return postInvokeResponse.getHttpResponse();
                 }
@@ -155,7 +159,7 @@ public class HttpRequestManager {
         }
 
 
-        return getResponse(requestInfo,null,HttpResponseStatus.INTERNAL_SERVER_ERROR);
+        return HttpUtil.getResponse(requestInfo,null,HttpResponseStatus.INTERNAL_SERVER_ERROR);
 
 
 
@@ -164,164 +168,6 @@ public class HttpRequestManager {
 
 
 
-    private InvokeResponse invoke(final String reqId, final long startTime, final RequestInfo requestInfo, final Method method, final FullHttpRequest req, final ChannelHandlerContext ctx, final QueryStringDecoder queryStringDecoder, final boolean mainMethod, final AbstractHttpResponse mainResponse){
-
-        final int requestHandlerIndex = requestInfo.getRequestHandlerIndex();
-
-
-
-        try{
-
-            final Object[] params = getInvokeParams(reqId,startTime,method,req,ctx,queryStringDecoder,mainResponse);
-            final Object response = method.invoke(httpRequestHandlers.get(requestHandlerIndex), params);
-            if(mainMethod){
-                final AbstractHttpResponse httpResponse =  getResponse(requestInfo,response,HttpResponseStatus.OK);
-                return new InvokeResponse(true,httpResponse);
-            } else{
-                return new InvokeResponse(true,null); // todo : what if we want to process pre/post handler's repsonse ?
-            }
-
-
-        } catch (InvocationTargetException e){
-            final Throwable throwable = e.getCause();
-            if (throwable instanceof HttpRequestException) {
-                final HttpRequestException httpRequestException = (HttpRequestException) throwable;
-                logger.info("{{}} got HttpRequestException while invoking: {}",reqId,requestInfo);
-                final AbstractHttpResponse httpResponse = getResponse(requestInfo,httpRequestException.getHttpResponse(),httpRequestException.getHttpResponse().getStatus());
-                return new InvokeResponse(false,httpResponse);
-            } else{
-                logger.error("{{}} InvocationTargetException occurred while invoking: {}; reason: {}",reqId,requestInfo,e.getMessage());
-            }
-        } catch (Throwable e){
-            logger.error("{{}} UnknownException occurred while invoking:{} ; reason: {}",reqId,requestInfo,e.getMessage());
-        }
-
-
-        final AbstractHttpResponse httpResponse = getResponse(requestInfo,null,HttpResponseStatus.INTERNAL_SERVER_ERROR);
-        return new InvokeResponse(false,httpResponse);
-
-    }
-
-
-    /* deprecated ...
-    private InvokeResponse _call(final String reqId, final long startTime, final RequestInfo requestInfo, final FullHttpRequest req, final ChannelHandlerContext ctx, final QueryStringDecoder queryStringDecoder){
-
-        final int requestHandlerIndex = requestInfo.getRequestHandlerIndex();
-
-
-
-        try{
-
-            final Object[] params = getInvokeParams(reqId,startTime,requestInfo.getInvokationMethod(),req,ctx,queryStringDecoder);
-            final Object response = requestInfo.getInvokationMethod().invoke(httpRequestHandlers.get(requestHandlerIndex), params);
-            final AbstractHttpResponse httpResponse =  getResponse(requestInfo,response,HttpResponseStatus.OK);
-            return new InvokeResponse(true,httpResponse);
-
-        } catch (InvocationTargetException e){
-            final Throwable throwable = e.getCause();
-            if (throwable instanceof HttpRequestException) {
-                final HttpRequestException httpRequestException = (HttpRequestException) throwable;
-                logger.info("{{}} got HttpRequestException while invoking: {}; gonna return: {}",reqId,requestInfo,httpRequestException);
-                final AbstractHttpResponse httpResponse = getResponse(requestInfo,httpRequestException.getHttpResponse(),httpRequestException.getHttpResponse().getStatus());
-                return new InvokeResponse(false,httpResponse);
-            } else{
-                logger.error("{{}} InvocationTargetException occurred while invoking: {}; reason: {}",reqId,requestInfo,e.getMessage());
-            }
-        } catch (Throwable e){
-            logger.error("{{}} UnknownException occurred while invoking:{} ; reason: {}",reqId,requestInfo,e.getMessage());
-        }
-
-
-        final AbstractHttpResponse httpResponse = getResponse(requestInfo,null,HttpResponseStatus.INTERNAL_SERVER_ERROR);
-        return new InvokeResponse(false,httpResponse);
-
-    }
-    */
-
-
-    // todo : create a private method called _invoke ...
-    private Object[] getInvokeParams(final String reqId, final long startTime, final Method method, final FullHttpRequest req, final ChannelHandlerContext ctx, final QueryStringDecoder queryStringDecoder, final AbstractHttpResponse mainResponse) throws Exception {
-
-        final String path = queryStringDecoder.path();
-
-
-        //final Annotation[][] annotationArr = requestInfo.getInvokationMethod().getParameterAnnotations();
-        final Annotation[][] annotationArr = method.getParameterAnnotations();
-
-        final Object[] paramVal = new Object[annotationArr.length];
-
-        if (annotationArr.length > 0) {
-
-            for (int i = 0; i < annotationArr.length; i++) {
-
-                if(annotationArr[i].length==0) continue;
-
-                final Annotation annotation = annotationArr[i][0];
-
-                if (annotation instanceof RequestBody) {
-                    final ByteBuf byteBuf = req.content();
-                    paramVal[i] = byteBuf.toString(Charset.forName("UTF-8")); // todo: make charset configurable ...
-                } else if (annotation instanceof RequestData) {
-                    final ByteBuf byteBuf = req.content();
-                    final byte[] bytes = new byte[byteBuf.readableBytes()];
-                    int readerIndex = byteBuf.readerIndex();
-                    byteBuf.getBytes(readerIndex, bytes);
-                    paramVal[i] = bytes;
-                } else if (annotation instanceof IpAddress) {
-                    paramVal[i] = getIpAddr(ctx,req);
-                } else if (annotation instanceof QueryParam) {
-                    final QueryParam queryParam = (QueryParam) annotation;
-                    String value = null;
-                    if(queryStringDecoder.parameters()!=null && queryStringDecoder.parameters().size()>0){
-                        if(queryStringDecoder.parameters().containsKey(queryParam.key())){
-                            final List<String> values = queryStringDecoder.parameters().get(queryParam.key());
-                            if(values.size()>0){
-                                value = values.get(values.size()-1);
-                            }
-                        }
-                    }
-                    paramVal[i] = value;
-                } else if(annotation instanceof RequestHeader){
-                    final RequestHeader requestHeader = (RequestHeader) annotation;
-                    paramVal[i] = req.headers().get(requestHeader.key());
-                } else if(annotation instanceof RequestId){
-                    paramVal[i] = reqId;
-                } else if(annotation instanceof RequestPath){
-                    paramVal[i] = path;
-                } else if(annotation instanceof RequestTime){
-                    paramVal[i] = startTime;
-                }
-
-                // todo : better code-quality required ...
-                if(mainResponse!=null){
-                    if(annotation instanceof ResponseStatus){
-                        paramVal[i] = mainResponse.getStatus().code();
-                    } else if(annotation instanceof ResponseBody && mainResponse.getType().equals(DataType.TEXT)){
-                        paramVal[i] = ((TextHttpResponse) mainResponse).getBody();
-                    } else if(annotation instanceof ResponseData && mainResponse.getType().equals(DataType.BINARY)){
-                        paramVal[i] = ((BinaryHttpResponse) mainResponse).getData();
-                    }
-                }
-            }
-
-        }
-
-        return paramVal;
-
-    }
-
-
-    private String getIpAddr(ChannelHandlerContext ctx, final FullHttpRequest request) {
-
-        if(request.headers()!=null){
-            final String xForwardedFor = request.headers().get("X-Forwarded-For");
-            if (!StringUtils.isBlank(xForwardedFor)) {
-                return xForwardedFor;
-            }
-        }
-        return ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress().getHostAddress();
-
-    }
 
 
 
@@ -339,34 +185,9 @@ public class HttpRequestManager {
 
 
 
-    private String getContentType(final RequestInfo requestInfo, final boolean binStat){
 
-        final String customResponseContentType = requestInfo.getResponseContentType();
-        if(!StringUtils.isBlank(customResponseContentType)){
-            return customResponseContentType;
-        }
-        return binStat ? ConstValues.DEFAULT_BIN_CONTENT_TYPE : ConstValues.DEFAULT_CONTENT_TYPE;
 
-    }
 
-    private AbstractHttpResponse getResponse(final RequestInfo requestInfo, final Object response, final HttpResponseStatus httpResponseStatus){
-
-        if(response==null){
-            logger.warn("response is null for: {} ; cannot decide the type of the response!",requestInfo); // todo : log reqId too ... ?
-            return new TextHttpResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR,null,requestInfo.getResponseContentType());
-        } else{
-            if( (response instanceof AbstractHttpResponse) ){
-                return (AbstractHttpResponse) response;
-            } else{
-                if(response instanceof byte[]){
-                    return new BinaryHttpResponse(httpResponseStatus,(byte[]) response, getContentType(requestInfo,true));
-                } else{
-                    return new TextHttpResponse(httpResponseStatus, (String) response, getContentType(requestInfo,false));
-                }
-            }
-        }
-
-    }
 
 
 }
