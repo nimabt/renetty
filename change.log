@@ -6,11 +6,19 @@
     - minor changes including some logging improvements
 
 * 0.1.2
-    - removing HttpRequest's responseType, detecting the response by the target method's return value
-    - support for direct usages of {TextHttpResponse,BinaryHttpResponse} within HttpRequest's response
+    - removing HttpRequest's responseType, detecting the httpResponse by the target method's return value
+    - support for direct usages of {TextHttpResponse,BinaryHttpResponse} within HttpRequest's httpResponse
 
 * 0.1.3
     - adding support for having multiple HttpRequestHandler implementations within one NettyHttpServer
+
+* 0.1.4
+    - adding @PreIntercept/@PostIntercept method annotations
+    - support for @RequestTime parameter annotation
+    - adding breakOnException for @HttpRequest,@PreIntercept,@PostIntercept
+
+
+
 
 
 

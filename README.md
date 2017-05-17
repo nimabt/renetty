@@ -64,7 +64,7 @@ you can also use [jitpack](https://jitpack.io) to prevent local build & automati
  
  @HttpRequest(method = RequestMethod.GET, path = "/test")
  public String testGet(){
-     return "test response";
+     return "test httpResponse";
  }
  @HttpRequest(method = RequestMethod.POST , path="/test/post/data")
  public String testPostData(final @RequestBody String body, final @IpAddress String ipAddress){

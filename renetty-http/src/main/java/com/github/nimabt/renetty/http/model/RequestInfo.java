@@ -18,6 +18,8 @@ public class RequestInfo implements Serializable {
     private final int requestHandlerIndex;
     private final Method invokationMethod;
 
+    private final boolean breakOnException;
+
     public RequestInfo(
             final int requestHandlerIndex,
             final Method invokationMethod,
@@ -25,7 +27,8 @@ public class RequestInfo implements Serializable {
             final String uri,
             final DataType requestType,
             //final DataType responseType,
-            final String responseContentType
+            final String responseContentType,
+            final boolean breakOnException
             ){
         this.requestHandlerIndex = requestHandlerIndex;
         this.invokationMethod = invokationMethod;
@@ -34,6 +37,7 @@ public class RequestInfo implements Serializable {
         this.requestType = requestType;
         //this.responseType = responseType;
         this.responseContentType = responseContentType;
+        this.breakOnException = breakOnException;
     }
 
 
@@ -73,6 +77,9 @@ public class RequestInfo implements Serializable {
     }
     */
 
+    public boolean isBreakOnException() {
+        return breakOnException;
+    }
 
     @Override
     public String toString() {
@@ -84,6 +91,7 @@ public class RequestInfo implements Serializable {
                 //", responseType=" + responseType +
                 ", responseContentType='" + responseContentType + '\'' +
                 ", invokationMethod=" + invokationMethod +
+                ", breakOnException=" + breakOnException +
                 '}';
     }
 

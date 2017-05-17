@@ -45,6 +45,8 @@ public class NettyHttpChannelInboundHandler extends ChannelInboundHandlerAdapter
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
+        final long startTime = System.currentTimeMillis();
+
         final String reqId = UUID.randomUUID().toString();
 
         if(!(msg instanceof FullHttpRequest)){
@@ -70,7 +72,7 @@ public class NettyHttpChannelInboundHandler extends ChannelInboundHandlerAdapter
         final byte[] resp;
         final String contentType;
 
-        final AbstractHttpResponse response = httpRequestManager.process(reqId, req, ctx);
+        final AbstractHttpResponse response = httpRequestManager.process(reqId, startTime, req, ctx);
         if (response == null) {
             logger.error("{{}} received null resp. from the corresponding handler for [{}:{}]",reqId,req.method(),req.uri());
             httpResponseStatus = HttpResponseStatus.INTERNAL_SERVER_ERROR;
