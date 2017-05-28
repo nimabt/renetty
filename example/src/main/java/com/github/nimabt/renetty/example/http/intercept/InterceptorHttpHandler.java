@@ -18,8 +18,8 @@ public class InterceptorHttpHandler implements HttpRequestHandler {
 
 
     @PreIntercept(method = RequestMethod.GET)
-    public void preInterceptor(final @RequestId String requestId){
-        System.out.println("reqId: " + requestId + " got request !");
+    public void preIntercept(final @RequestId String requestId, final @IpAddress String ipAddress){
+        System.out.println("reqId: " + requestId + " got request ! , from: " + ipAddress);
     }
 
 

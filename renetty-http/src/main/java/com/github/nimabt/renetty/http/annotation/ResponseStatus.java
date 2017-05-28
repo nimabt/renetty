@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ResponseStatus {
-
+    // todo : change to int ?
     String value() default "";
 
 }
