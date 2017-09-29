@@ -37,7 +37,7 @@ you can also use [jitpack](https://jitpack.io) to prevent local build & automati
     <dependency>
         <groupId>com.github.nimabt.renetty</groupId>
         <artifactId>renetty-http</artifactId>
-        <version>0.1.4</version>
+        <version>0.1.5</version>
     </dependency>
     ...
 </dependencies>
