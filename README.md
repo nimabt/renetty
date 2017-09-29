@@ -17,7 +17,7 @@ finally, add the following dependency to the project's pom.xml (in case of using
 <dependency>
     <groupId>com.github.nimabt.renetty</groupId>
     <artifactId>renetty-http</artifactId>
-    <version>0.1.4</version>
+    <version>0.1.5</version>
 </dependency>
 ```
 ### Using JitPack
