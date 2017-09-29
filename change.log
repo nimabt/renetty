@@ -18,7 +18,8 @@
     - adding breakOnException for @HttpRequest,@PreIntercept,@PostIntercept
     - adding support for @ResponseStatus, @ResponseBody & @ResponseData within @PostIntercept
 
-
+* 0.1.5
+    - performance boost (setting worker-count for childGroup's EventLoopGroup)
 
 
 

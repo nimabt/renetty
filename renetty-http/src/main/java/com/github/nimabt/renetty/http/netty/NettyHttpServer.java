@@ -54,12 +54,12 @@ public class NettyHttpServer {
         final HttpRequestManager httpRequestManager = new HttpRequestManager(requestHandlers);
 
         final EventLoopGroup parentGroup = new NioEventLoopGroup(workerCount);
-        final EventLoopGroup childGroup = new NioEventLoopGroup();
+        final EventLoopGroup childGroup = new NioEventLoopGroup(workerCount);
 
         final ServerBootstrap bootstrap = new ServerBootstrap();
         bootstrap.option(ChannelOption.SO_BACKLOG, 1024);
         bootstrap.group(parentGroup, childGroup);
-        bootstrap.handler(new LoggingHandler(LogLevel.DEBUG));
+        bootstrap.handler(new LoggingHandler(LogLevel.WARN));
         bootstrap.channel(NioServerSocketChannel.class);
         bootstrap.childHandler(new NettyHttpChannelInitializer(httpRequestManager, maxContentLength));
 
