@@ -1,5 +1,7 @@
-package com.github.nimabt.renetty.http.model;
+package com.github.nimabt.renetty.http.model.response;
 
+import com.github.nimabt.renetty.http.model.DataType;
+import com.github.nimabt.renetty.http.model.response.AbstractHttpResponse;
 import com.github.nimabt.renetty.http.util.ConstValues;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
@@ -27,7 +29,7 @@ public class BinaryHttpResponse extends AbstractHttpResponse {
     }
 
 
-    public DataType getType() {
+    public final DataType getType() {
         return DataType.BINARY;
     }
 

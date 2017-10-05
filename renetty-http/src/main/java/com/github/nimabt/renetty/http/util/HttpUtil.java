@@ -1,10 +1,9 @@
 package com.github.nimabt.renetty.http.util;
 
-import com.github.nimabt.renetty.http.model.AbstractHttpResponse;
-import com.github.nimabt.renetty.http.model.BinaryHttpResponse;
+import com.github.nimabt.renetty.http.model.response.AbstractHttpResponse;
+import com.github.nimabt.renetty.http.model.response.BinaryHttpResponse;
 import com.github.nimabt.renetty.http.model.RequestInfo;
-import com.github.nimabt.renetty.http.model.TextHttpResponse;
-import com.github.nimabt.renetty.http.netty.MethodInvokeImpl;
+import com.github.nimabt.renetty.http.model.response.TextHttpResponse;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;

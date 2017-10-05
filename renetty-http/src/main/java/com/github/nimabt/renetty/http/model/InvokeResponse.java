@@ -1,5 +1,7 @@
 package com.github.nimabt.renetty.http.model;
 
+import com.github.nimabt.renetty.http.model.response.AbstractHttpResponse;
+
 import java.io.Serializable;
 
 /**

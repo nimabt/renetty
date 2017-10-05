@@ -1,9 +1,10 @@
 package com.github.nimabt.renetty.http.netty;
 
-import com.github.nimabt.renetty.http.model.AbstractHttpResponse;
-import com.github.nimabt.renetty.http.model.BinaryHttpResponse;
+import com.github.nimabt.renetty.http.model.response.AbstractHttpResponse;
+import com.github.nimabt.renetty.http.model.response.BinaryHttpResponse;
 import com.github.nimabt.renetty.http.model.DataType;
-import com.github.nimabt.renetty.http.model.TextHttpResponse;
+import com.github.nimabt.renetty.http.model.response.RedirectHttpResponse;
+import com.github.nimabt.renetty.http.model.response.TextHttpResponse;
 import com.github.nimabt.renetty.http.util.ConstValues;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
@@ -13,6 +14,7 @@ import io.netty.handler.codec.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
 import java.util.UUID;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.*;
@@ -69,30 +71,54 @@ public class NettyHttpChannelInboundHandler extends ChannelInboundHandlerAdapter
         final boolean keepAlive = HttpUtil.isKeepAlive(req);
 
         final HttpResponseStatus httpResponseStatus;
-        final byte[] resp;
-        final String contentType;
+
 
         final AbstractHttpResponse response = httpRequestManager.process(reqId, startTime, req, ctx);
         if (response == null) {
             logger.error("{{}} received null resp. from the corresponding handler for [{}:{}]",reqId,req.method(),req.uri());
             httpResponseStatus = HttpResponseStatus.INTERNAL_SERVER_ERROR;
-            resp = ConstValues.EMPTY_RESPONSE;
-            contentType = ConstValues.DEFAULT_CONTENT_TYPE;
-        } else {
-            httpResponseStatus = response.getStatus();
-            contentType = response.getContentType();
-            if (response.getType().equals(DataType.BINARY)) {
-                resp = ((BinaryHttpResponse) response).getData();
-            } else {
-                final String body = ((TextHttpResponse) response).getBody();
-                resp = ((body != null) ? body.getBytes() : ConstValues.EMPTY_RESPONSE);
-            }
+            prepareResponse(httpResponseStatus,ConstValues.EMPTY_RESPONSE,ConstValues.DEFAULT_CONTENT_TYPE,keepAlive,ctx,null);
+            return;
+
         }
+
+        if(response instanceof RedirectHttpResponse){
+            prepareResponse(response.getStatus(),new byte[]{},response.getContentType(),keepAlive,ctx,response.getHeaders());
+            return;
+        }
+
+
+        httpResponseStatus = response.getStatus();
+        final String contentType = response.getContentType();
+        final byte[] resp;
+        if (response.getType().equals(DataType.BINARY)) {
+            resp = ((BinaryHttpResponse) response).getData();
+        } else {
+            final String body = ((TextHttpResponse) response).getBody();
+            resp = ((body != null) ? body.getBytes() : ConstValues.EMPTY_RESPONSE);
+        }
+
+        prepareResponse(httpResponseStatus,resp,contentType,keepAlive,ctx,response.getHeaders());
+
+
+
+
+    }
+
+
+    private void prepareResponse(final HttpResponseStatus httpResponseStatus, final byte[] resp, final String contentType, final boolean keepAlive, final ChannelHandlerContext ctx, final Map<String,String> headers) throws Exception{
 
         final FullHttpResponse httpResponse =
                 new DefaultFullHttpResponse(HTTP_1_1, httpResponseStatus, Unpooled.wrappedBuffer(resp));
+
         httpResponse.headers().set(CONTENT_TYPE, contentType);
         httpResponse.headers().set(CONTENT_LENGTH, httpResponse.content().readableBytes());
+
+        if(headers!=null && headers.size()>0){
+            for(final Map.Entry<String,String> header : headers.entrySet()){
+                httpResponse.headers().set(header.getKey(),header.getValue());
+            }
+        }
 
         if (!keepAlive) {
             ctx.write(httpResponse).addListener(ChannelFutureListener.CLOSE);
@@ -100,8 +126,6 @@ public class NettyHttpChannelInboundHandler extends ChannelInboundHandlerAdapter
             httpResponse.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
             ctx.write(httpResponse);
         }
-
-
 
     }
 

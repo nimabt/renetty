@@ -3,6 +3,8 @@ package com.github.nimabt.renetty.example.http.intercept;
 import com.github.nimabt.renetty.http.annotation.*;
 import com.github.nimabt.renetty.http.exception.HttpRequestException;
 import com.github.nimabt.renetty.http.model.RequestMethod;
+import com.github.nimabt.renetty.http.model.response.AbstractHttpResponse;
+import com.github.nimabt.renetty.http.model.response.RedirectHttpResponse;
 import com.github.nimabt.renetty.http.netty.HttpRequestHandler;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
@@ -23,6 +25,18 @@ public class InterceptorHttpHandler implements HttpRequestHandler {
     }
 
 
+    @PostIntercept(method = RequestMethod.GET)
+    public void postInterceptor(
+            final @RequestId String requestId,
+            final @RequestTime long requestTime,
+            final @ResponseStatus int responseStatus,
+            final @ResponseBody String responseBody
+    ){
+        System.out.println("reqId: " + requestId + " done processing; returned: {status:" + responseStatus + " , body: " + responseBody + "} , took: " + (System.currentTimeMillis()-requestTime) + " msecs.");
+    }
+
+
+
 
     @HttpRequest(method = RequestMethod.GET, path = "/test")
     public String test(final @RequestId String requestId){
@@ -39,15 +53,17 @@ public class InterceptorHttpHandler implements HttpRequestHandler {
 
 
 
-    @PostIntercept(method = RequestMethod.GET)
-    public void postInterceptor(
-            final @RequestId String requestId,
-            final @RequestTime long requestTime,
-            final @ResponseStatus int responseStatus,
-            final @ResponseBody String responseBody
-    ){
-        System.out.println("reqId: " + requestId + " done processing; returned: {status:" + responseStatus + " , body: " + responseBody + "} , took: " + (System.currentTimeMillis()-requestTime) + " msecs.");
+    @HttpRequest(method = RequestMethod.GET, path = "/test3")
+    public AbstractHttpResponse test3(final @RequestId String requestId) {
+        System.out.println("reqId: " + requestId + " processing request that will redirect to google !");
+        return new RedirectHttpResponse("https://www.google.com");
     }
+
+
+
+
+
+
 
 
 

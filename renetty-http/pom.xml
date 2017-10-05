@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.github.nimabt.renetty</groupId>
         <artifactId>renetty</artifactId>
-        <version>0.1.5</version>
+        <version>0.2.0</version>
     </parent>
 
     <artifactId>renetty-http</artifactId>

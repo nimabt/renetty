@@ -3,21 +3,21 @@ package com.github.nimabt.renetty.http.netty;
 import com.github.nimabt.renetty.http.annotation.*;
 import com.github.nimabt.renetty.http.exception.HttpRequestException;
 import com.github.nimabt.renetty.http.model.*;
-import com.github.nimabt.renetty.http.util.ConstValues;
+import com.github.nimabt.renetty.http.model.response.AbstractHttpResponse;
+import com.github.nimabt.renetty.http.model.response.BinaryHttpResponse;
+import com.github.nimabt.renetty.http.model.response.TextHttpResponse;
 import com.github.nimabt.renetty.http.util.HttpUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.util.List;
 

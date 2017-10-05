@@ -1,8 +1,8 @@
 package com.github.nimabt.renetty.http.exception;
 
-import com.github.nimabt.renetty.http.model.AbstractHttpResponse;
-import com.github.nimabt.renetty.http.model.BinaryHttpResponse;
-import com.github.nimabt.renetty.http.model.TextHttpResponse;
+import com.github.nimabt.renetty.http.model.response.AbstractHttpResponse;
+import com.github.nimabt.renetty.http.model.response.BinaryHttpResponse;
+import com.github.nimabt.renetty.http.model.response.TextHttpResponse;
 import com.github.nimabt.renetty.http.util.ConstValues;
 import io.netty.handler.codec.http.HttpResponseStatus;
 

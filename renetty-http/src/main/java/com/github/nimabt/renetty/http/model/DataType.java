@@ -6,5 +6,5 @@ package com.github.nimabt.renetty.http.model;
  */
 public enum DataType {
     TEXT,
-    BINARY;
+    BINARY
 }

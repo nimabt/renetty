@@ -23,4 +23,10 @@
 
 
 
+* 0.2.0
+    - redirect feature: with the help of {RedirectHttpResponse} entity
+    - create option for setting custom HttpResponse headers
+    - minor changes & improvements
+
+
 
