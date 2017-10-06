@@ -72,14 +72,13 @@ public class NettyHttpChannelInboundHandler extends ChannelInboundHandlerAdapter
 
         final HttpResponseStatus httpResponseStatus;
 
-
         final AbstractHttpResponse response = httpRequestManager.process(reqId, startTime, req, ctx);
         if (response == null) {
             logger.error("{{}} received null resp. from the corresponding handler for [{}:{}]",reqId,req.method(),req.uri());
             httpResponseStatus = HttpResponseStatus.INTERNAL_SERVER_ERROR;
-            prepareResponse(httpResponseStatus,ConstValues.EMPTY_RESPONSE,ConstValues.DEFAULT_CONTENT_TYPE,keepAlive,ctx,null);
+            //prepareResponse(httpResponseStatus,ConstValues.EMPTY_RESPONSE,ConstValues.DEFAULT_CONTENT_TYPE,keepAlive,ctx,null);
+            prepareResponse(httpResponseStatus,ConstValues.EMPTY_RESPONSE,ConstValues.DEFAULT_CONTENT_TYPE,false,ctx,null); // todo : think about keep-alive in redirect ...
             return;
-
         }
 
         if(response instanceof RedirectHttpResponse){

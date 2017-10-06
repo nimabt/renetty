@@ -5,6 +5,7 @@ import com.github.nimabt.renetty.http.exception.HttpRequestException;
 import com.github.nimabt.renetty.http.model.*;
 import com.github.nimabt.renetty.http.model.response.AbstractHttpResponse;
 import com.github.nimabt.renetty.http.model.response.BinaryHttpResponse;
+import com.github.nimabt.renetty.http.model.response.RedirectHttpResponse;
 import com.github.nimabt.renetty.http.model.response.TextHttpResponse;
 import com.github.nimabt.renetty.http.util.HttpUtil;
 import io.netty.buffer.ByteBuf;
@@ -58,7 +59,7 @@ public class MethodInvokeImpl {
                 final AbstractHttpResponse httpResponse =  HttpUtil.getResponse(requestInfo,response, HttpResponseStatus.OK);
                 return new InvokeResponse(true,httpResponse);
             } else{
-                return new InvokeResponse(true,null); // todo : what if we want to process pre/post handler's repsonse ?
+                return new InvokeResponse(true,null); // todo : what if we want to process pre/post handler's response ?
             }
 
 
@@ -150,7 +151,12 @@ public class MethodInvokeImpl {
                         if(annotation instanceof ResponseStatus){
                             paramVal[i] = mainResponse.getStatus().code();
                         } else if(annotation instanceof ResponseBody && mainResponse.getType().equals(DataType.TEXT)){
-                            paramVal[i] = ((TextHttpResponse) mainResponse).getBody();
+                            // todo: check this ...
+                            if(mainResponse instanceof RedirectHttpResponse){
+                                paramVal[i] = null;
+                            } else{
+                                paramVal[i] = ((TextHttpResponse) mainResponse).getBody();
+                            }
                         } else if(annotation instanceof ResponseData && mainResponse.getType().equals(DataType.BINARY)){
                             paramVal[i] = ((BinaryHttpResponse) mainResponse).getData();
                         }
