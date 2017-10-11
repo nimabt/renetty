@@ -7,7 +7,6 @@ import com.github.nimabt.renetty.http.model.response.AbstractHttpResponse;
 import com.github.nimabt.renetty.http.model.response.BinaryHttpResponse;
 import com.github.nimabt.renetty.http.model.response.TextHttpResponse;
 import com.github.nimabt.renetty.http.netty.HttpRequestHandler;
-import com.sun.jersey.api.uri.UriTemplate;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;

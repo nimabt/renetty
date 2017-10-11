@@ -5,7 +5,7 @@
 
     <groupId>com.github.nimabt.renetty</groupId>
     <artifactId>renetty</artifactId>
-    <version>0.3.0-snapshot</version>
+    <version>0.3.0</version>
     <packaging>pom</packaging>
 
     <name>renetty</name>

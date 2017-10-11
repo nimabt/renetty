@@ -31,7 +31,7 @@
 
 
 * 0.3.0
-    - support for @PathVariable (using jetty's URITemplate)
+    - support for @PathVariable (using jersey's URITemplate)
 
 
 
