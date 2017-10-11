@@ -21,6 +21,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author: nima.abt
@@ -46,14 +47,15 @@ public class MethodInvokeImpl {
             final QueryStringDecoder queryStringDecoder,
             final RequestInfo requestInfo,
             final String reqId, final long startTime,
-            final MethodType methodType, final AbstractHttpResponse mainResponse
+            final MethodType methodType, final AbstractHttpResponse mainResponse,
+            final Map<String,String> pathVariables
     ){
 
 
 
         try{
 
-            final Object[] params = getInvokeParams(method,req,ctx,queryStringDecoder,methodType,reqId,startTime,mainResponse);
+            final Object[] params = getInvokeParams(method,req,ctx,queryStringDecoder,methodType,reqId,startTime,mainResponse, pathVariables);
             final Object response = method.invoke(httpRequestHandler, params);
             if(methodType.equals(MethodType.MAIN_METHOD)){
                 final AbstractHttpResponse httpResponse =  HttpUtil.getResponse(requestInfo,response, HttpResponseStatus.OK);
@@ -92,7 +94,8 @@ public class MethodInvokeImpl {
             final QueryStringDecoder queryStringDecoder,
             final MethodType methodType,
             final String reqId, final long startTime,
-            final AbstractHttpResponse mainResponse
+            final AbstractHttpResponse mainResponse,
+            final Map<String,String> pathVariables
     ) throws Exception {
 
         final String path = queryStringDecoder.path();
@@ -143,6 +146,15 @@ public class MethodInvokeImpl {
                     paramVal[i] = path;
                 } else if(annotation instanceof RequestTime){
                     paramVal[i] = startTime;
+                } else if (annotation instanceof PathVariable) {
+                    final PathVariable pathVariable = (PathVariable) annotation;
+                    String value = null;
+                    if(pathVariable!=null && pathVariables.size()>0){
+                        if(pathVariables.containsKey(pathVariable.key())){
+                            value = pathVariables.get(pathVariable.key());
+                        }
+                    }
+                    paramVal[i] = value;
                 }
 
 

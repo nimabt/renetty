@@ -7,9 +7,13 @@ import com.github.nimabt.renetty.http.model.response.AbstractHttpResponse;
 import com.github.nimabt.renetty.http.model.response.BinaryHttpResponse;
 import com.github.nimabt.renetty.http.model.response.TextHttpResponse;
 import com.github.nimabt.renetty.http.netty.HttpRequestHandler;
+import com.sun.jersey.api.uri.UriTemplate;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -97,13 +101,19 @@ public class TestHttpHandler implements HttpRequestHandler {
     @HttpRequest(method = RequestMethod.GET , path="/test/obj/complex")
     public AbstractHttpResponse testComplexResponse(final @QueryParam(key = "type") String type){
         if(StringUtils.isBlank(type) || type.equalsIgnoreCase("text")){
-            return new TextHttpResponse("text repsonse");
+            return new TextHttpResponse("text response");
         } else{
             final byte[] data = Base64.decodeBase64(TEST_BIN_IMAGE_BASE64);
             return new BinaryHttpResponse(HttpResponseStatus.OK,data,"image/png");
         }
     }
 
+
+
+    @HttpRequest(method = RequestMethod.GET , path="/test/path-variable/{pathVariable1}/{pathVariable2}")
+    public String testPathVariable(@PathVariable(key="pathVariable1") String pathVariable1, @PathVariable(key="pathVariable2") String pathVariable2){
+        return "pathVariables: { pathVariable1: " + pathVariable1 + " , pathVariable2: " + pathVariable2 + "}";
+    }
 
 
 

@@ -1,5 +1,7 @@
 package com.github.nimabt.renetty.http.model;
 
+import com.sun.jersey.api.uri.UriTemplate;
+
 import java.io.Serializable;
 import java.lang.reflect.Method;
 
@@ -20,6 +22,8 @@ public class RequestInfo implements Serializable {
 
     private final boolean breakOnException;
 
+    private final UriTemplate uriTemplate;
+
     public RequestInfo(
             final int requestHandlerIndex,
             final Method invokationMethod,
@@ -38,6 +42,7 @@ public class RequestInfo implements Serializable {
         //this.responseType = responseType;
         this.responseContentType = responseContentType;
         this.breakOnException = breakOnException;
+        this.uriTemplate = new UriTemplate(uri);
     }
 
 
@@ -80,6 +85,12 @@ public class RequestInfo implements Serializable {
     public boolean isBreakOnException() {
         return breakOnException;
     }
+
+    public UriTemplate getUriTemplate() {
+        return uriTemplate;
+    }
+
+
 
     @Override
     public String toString() {

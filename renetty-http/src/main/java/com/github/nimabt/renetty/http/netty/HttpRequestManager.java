@@ -110,6 +110,7 @@ public class HttpRequestManager {
 
 
 
+        /* deprecated
         final String key = getRequestKey(method.name(), path);
         if (!requestMap.containsKey(key)) {
             return new TextHttpResponse(HttpResponseStatus.NOT_FOUND, null, ConstValues.DEFAULT_CONTENT_TYPE);
@@ -118,7 +119,17 @@ public class HttpRequestManager {
         final RequestInfo requestInfo = requestMap.get(key);
         final int requestHandlerIndex = requestInfo.getRequestHandlerIndex();
         final HttpRequestHandler httpRequestHandler = httpRequestHandlers.get(requestHandlerIndex);
+        */
 
+        final IncomingRequestInfo incomingRequestInfo = getRequestInfo(method.name(), path);
+        if(incomingRequestInfo == null){
+            return new TextHttpResponse(HttpResponseStatus.NOT_FOUND, null, ConstValues.DEFAULT_CONTENT_TYPE);
+        }
+
+        final RequestInfo requestInfo = incomingRequestInfo.getRequestInfo();
+        final Map<String,String> pathVariables = incomingRequestInfo.getPathVariables();
+        final int requestHandlerIndex = requestInfo.getRequestHandlerIndex();
+        final HttpRequestHandler httpRequestHandler = httpRequestHandlers.get(requestHandlerIndex);
 
 
 
@@ -127,7 +138,7 @@ public class HttpRequestManager {
             final String preInterceptKey = getInterceptorKey(MethodType.PRE_INTERCEPT,method.toString(),requestHandlerIndex);
             if(interceptMap.containsKey(preInterceptKey)){
                 final InterceptorInfo preInterceptorInfo = interceptMap.get(preInterceptKey);
-                final InvokeResponse preInvokeResponse = methodInvokeImpl.invoke(httpRequestHandler,preInterceptorInfo.getInvokationMethod(), req,ctx,queryStringDecoder,requestInfo,reqId, startTime,  MethodType.PRE_INTERCEPT,null);
+                final InvokeResponse preInvokeResponse = methodInvokeImpl.invoke(httpRequestHandler,preInterceptorInfo.getInvokationMethod(), req,ctx,queryStringDecoder,requestInfo,reqId, startTime,  MethodType.PRE_INTERCEPT,null, pathVariables);
                 if(!preInvokeResponse.isOk() && preInterceptorInfo.isBreakOnException()){
                     return preInvokeResponse.getHttpResponse();
                 }
@@ -135,7 +146,7 @@ public class HttpRequestManager {
 
 
 
-            final InvokeResponse invokeResponse = methodInvokeImpl.invoke(httpRequestHandler,requestInfo.getInvokationMethod(),req,ctx, queryStringDecoder,requestInfo, reqId, startTime, MethodType.MAIN_METHOD,null);
+            final InvokeResponse invokeResponse = methodInvokeImpl.invoke(httpRequestHandler,requestInfo.getInvokationMethod(),req,ctx, queryStringDecoder,requestInfo, reqId, startTime, MethodType.MAIN_METHOD,null, pathVariables);
             if(!invokeResponse.isOk() && requestInfo.isBreakOnException()){
                 return invokeResponse.getHttpResponse();
             }
@@ -144,7 +155,7 @@ public class HttpRequestManager {
             final String postInterceptKey = getInterceptorKey(MethodType.POST_INTERCEPT,method.toString(),requestHandlerIndex);
             if(interceptMap.containsKey(postInterceptKey)){
                 final InterceptorInfo postInterceptorInfo = interceptMap.get(postInterceptKey);
-                final InvokeResponse postInvokeResponse = methodInvokeImpl.invoke(httpRequestHandler,postInterceptorInfo.getInvokationMethod(),req,ctx, queryStringDecoder, requestInfo, reqId, startTime, MethodType.POST_INTERCEPT, invokeResponse.getHttpResponse());
+                final InvokeResponse postInvokeResponse = methodInvokeImpl.invoke(httpRequestHandler,postInterceptorInfo.getInvokationMethod(),req,ctx, queryStringDecoder, requestInfo, reqId, startTime, MethodType.POST_INTERCEPT, invokeResponse.getHttpResponse(), pathVariables);
                 if(!postInvokeResponse.isOk() && postInterceptorInfo.isBreakOnException()){
                     return postInvokeResponse.getHttpResponse();
                 }
@@ -171,13 +182,31 @@ public class HttpRequestManager {
 
 
 
-
+    // todo : rethink about the concept of key (and it's style)
     private String getRequestKey(final String method, final String uri) {
         return method + ":" + uri;
     }
 
     public String getInterceptorKey(final MethodType type, final String method, final int requestHandlerIndex){
         return type + "-" + method + ":" + requestHandlerIndex;
+    }
+
+
+    // todo : throw exception when not found ?
+    private IncomingRequestInfo getRequestInfo(final String methodName, final String uri){
+
+        for(final Map.Entry<String,RequestInfo> requestItem : requestMap.entrySet()){
+            final Map<String, String> pathVariables = new HashMap<String,String>();
+            // todo: ...
+            if(
+                    (methodName.equalsIgnoreCase(requestItem.getValue().getRequestMethod().toString())) &&
+                    (requestItem.getValue().getUriTemplate().match(uri,pathVariables))
+                ){
+                return new IncomingRequestInfo(requestItem.getValue(),pathVariables);
+            }
+        }
+        return null;
+
     }
 
 
