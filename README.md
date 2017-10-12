@@ -17,7 +17,7 @@ finally, add the following dependency to the project's pom.xml (in case of using
 <dependency>
     <groupId>com.github.nimabt.renetty</groupId>
     <artifactId>renetty-http</artifactId>
-    <version>0.3.0</version>
+    <version>0.3.1</version>
 </dependency>
 ```
 ### Using JitPack
@@ -37,7 +37,7 @@ you can also use [jitpack](https://jitpack.io) to prevent local build & automati
     <dependency>
         <groupId>com.github.nimabt.renetty</groupId>
         <artifactId>renetty-http</artifactId>
-        <version>0.3.0</version>
+        <version>0.3.1</version>
     </dependency>
     ...
 </dependencies>

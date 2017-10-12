@@ -13,6 +13,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import org.apache.commons.beanutils.ConvertUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -127,12 +128,14 @@ public class MethodInvokeImpl {
                     paramVal[i] = HttpUtil.getIpAddr(ctx,req);
                 } else if (annotation instanceof QueryParam) {
                     final QueryParam queryParam = (QueryParam) annotation;
-                    String value = null;
+                    //String value = null;
+                    Object value = null;
                     if(queryStringDecoder.parameters()!=null && queryStringDecoder.parameters().size()>0){
                         if(queryStringDecoder.parameters().containsKey(queryParam.key())){
                             final List<String> values = queryStringDecoder.parameters().get(queryParam.key());
                             if(values.size()>0){
-                                value = values.get(values.size()-1);
+                                //value = values.get(values.size()-1);
+                                value = ConvertUtils.convert(values.get(values.size()-1),method.getParameterTypes()[i]);
                             }
                         }
                     }
@@ -148,10 +151,12 @@ public class MethodInvokeImpl {
                     paramVal[i] = startTime;
                 } else if (annotation instanceof PathVariable) {
                     final PathVariable pathVariable = (PathVariable) annotation;
-                    String value = null;
+                    //String value = null;
+                    Object value = null;
                     if(pathVariable!=null && pathVariables.size()>0){
                         if(pathVariables.containsKey(pathVariable.key())){
-                            value = pathVariables.get(pathVariable.key());
+                            //value = pathVariables.get(pathVariable.key());
+                            value = ConvertUtils.convert(pathVariables.get(pathVariable.key()),method.getParameterTypes()[i]);
                         }
                     }
                     paramVal[i] = value;

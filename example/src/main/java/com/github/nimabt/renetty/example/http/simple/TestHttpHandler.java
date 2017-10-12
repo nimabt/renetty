@@ -53,9 +53,9 @@ public class TestHttpHandler implements HttpRequestHandler {
     }
 
 
-    @HttpRequest(method = RequestMethod.GET , path="/test/get/querystring")
-    public String testQueryParam(final @QueryParam(key = "item1") String item1Val, final @QueryParam(key = "item2") String item2Val){
-        return "got queryString with param(item1) = " + item1Val + " , param(item2) = " + item2Val;
+    @HttpRequest(method = RequestMethod.GET , path="/test/query-string")
+    public String testQueryParam(final @QueryParam(key = "item1") String item1Val, final @QueryParam(key = "item2") Float item2Val){
+        return "got queryString with param(String:item1) = " + item1Val + " , param(Float:item2) = " + item2Val;
     }
 
 
@@ -110,8 +110,8 @@ public class TestHttpHandler implements HttpRequestHandler {
 
 
     @HttpRequest(method = RequestMethod.GET , path="/test/path-variable/{pathVariable1}/{pathVariable2}")
-    public String testPathVariable(@PathVariable(key="pathVariable1") String pathVariable1, @PathVariable(key="pathVariable2") String pathVariable2){
-        return "pathVariables: { pathVariable1: " + pathVariable1 + " , pathVariable2: " + pathVariable2 + "}";
+    public String testPathVariable(@PathVariable(key="pathVariable1") String pathVariable1, @PathVariable(key="pathVariable2") int pathVariable2){
+        return "pathVariables: { (String:pathVariable1: " + pathVariable1 + ") , (int:pathVariable2: " + pathVariable2 + ") }";
     }
 
 

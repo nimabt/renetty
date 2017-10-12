@@ -33,5 +33,9 @@
 * 0.3.0
     - support for @PathVariable (using jersey's URITemplate)
 
+* 0.3.1
+    - support for custom return types (other than String) for @QueryParam & @PathVariable annotations
+
+
 
 
