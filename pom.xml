@@ -5,7 +5,7 @@
 
     <groupId>com.github.nimabt.renetty</groupId>
     <artifactId>renetty</artifactId>
-    <version>0.3.1</version>
+    <version>0.3.2</version>
     <packaging>pom</packaging>
 
     <name>renetty</name>
@@ -42,11 +42,6 @@
             <version>${org.slf4j.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>${org.slf4j.version}</version>
-        </dependency>
 
     </dependencies>
 
