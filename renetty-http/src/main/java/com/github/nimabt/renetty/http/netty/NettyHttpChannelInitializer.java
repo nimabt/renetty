@@ -6,6 +6,9 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpContentDecompressor;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.cors.CorsConfig;
+import io.netty.handler.codec.http.cors.CorsConfigBuilder;
+import io.netty.handler.codec.http.cors.CorsHandler;
 
 /**
  * @author: nima.abt
@@ -25,10 +28,14 @@ public class NettyHttpChannelInitializer extends ChannelInitializer<SocketChanne
     @Override
     public void initChannel(SocketChannel ch) throws Exception {
 
+
+        final CorsConfig corsConfig = CorsConfigBuilder.forAnyOrigin().build();
+
         final ChannelPipeline pipeline = ch.pipeline();
         pipeline.addLast(new HttpServerCodec());
         pipeline.addLast(new HttpObjectAggregator(maxContentLength));
         pipeline.addLast(new HttpContentDecompressor());
+        pipeline.addLast(new CorsHandler(corsConfig));
         pipeline.addLast(new NettyHttpChannelInboundHandler(requestManager));
 
     }
