@@ -25,6 +25,7 @@ public class NettyHttpServer {
     private final List<HttpRequestHandler> requestHandlers;
     private final int workerCount;
     private final int maxContentLength;
+    private final List<String> allowedHeaders;
 
     private final Logger logger = LoggerFactory.getLogger(NettyHttpServer.class);
 
@@ -32,13 +33,19 @@ public class NettyHttpServer {
         this(port,new LinkedList<HttpRequestHandler>(){{add(requestHandler);}},workerCount,maxContentLength);
     }
 
-
+    // todo: constructor requires builder pattern ...
     public NettyHttpServer(final int port, final List<HttpRequestHandler> requestHandlers, final int workerCount, final int maxContentLength){
+        this(port,requestHandlers,workerCount,maxContentLength, new LinkedList<String>());
+    }
+
+
+    public NettyHttpServer(final int port, final List<HttpRequestHandler> requestHandlers, final int workerCount, final int maxContentLength, final List<String> allowedHeaders){
         logger.info("init: NettyHttpServer (@port: {}) ... ",port);
         this.port = port;
         this.requestHandlers = requestHandlers;
         this.workerCount = workerCount>1 ?  workerCount : 1;
         this.maxContentLength = maxContentLength;
+        this.allowedHeaders = allowedHeaders;
     }
 
 
@@ -61,7 +68,7 @@ public class NettyHttpServer {
         bootstrap.group(parentGroup, childGroup);
         bootstrap.handler(new LoggingHandler(LogLevel.WARN));
         bootstrap.channel(NioServerSocketChannel.class);
-        bootstrap.childHandler(new NettyHttpChannelInitializer(httpRequestManager, maxContentLength));
+        bootstrap.childHandler(new NettyHttpChannelInitializer(httpRequestManager, maxContentLength, allowedHeaders));
 
         final Channel channel = bootstrap.bind(port).sync().channel();
         logger.info("netty http server is up-n-running ... :)");

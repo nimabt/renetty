@@ -39,6 +39,10 @@
 * 0.3.2
     - minor changes: (adding CorsHandler)
 
+* 0.3.3
+    - adding allowedHeaders as HttpServer's param
+
+
 
 
 
